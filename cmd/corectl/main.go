@@ -178,7 +178,7 @@ func configGenerator(db *sql.DB, rDB *raft.Service, args []string) {
 		Signers:             signers,
 		MaxIssuanceWindow:   bc.DurationMillis(*maxIssuanceWindow),
 		IsSigner:            *flagK != "",
-		BlockPub:            []byte(*flagK),
+		BlockPub:            *flagK,
 		BlockHsmUrl:         *flagHSMURL,
 		BlockHsmAccessToken: *flagHSMToken,
 	}
@@ -259,7 +259,7 @@ func configNongenerator(db *sql.DB, rDB *raft.Service, args []string) {
 	conf.GeneratorUrl = args[1]
 	conf.GeneratorAccessToken = *flagT
 	conf.IsSigner = *flagK != ""
-	conf.BlockPub = []byte(*flagK)
+	conf.BlockPub = *flagK
 	conf.BlockHsmUrl = *flagHSMURL
 	conf.BlockHsmAccessToken = *flagHSMToken
 
