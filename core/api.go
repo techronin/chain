@@ -98,7 +98,7 @@ func (a *API) needConfig() func(f interface{}) http.Handler {
 	return jsonHandler
 }
 
-// Adds the Core API routes to a preexisting http handler.
+// Handler adds the Core API routes to a preexisting http handler.
 func Handler(a *API, register func(*http.ServeMux, *API)) http.Handler {
 	// Setup the muxer.
 	needConfig := a.needConfig()

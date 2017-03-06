@@ -131,8 +131,6 @@ func (s *State) Apply(data []byte, index uint64) (satisfied bool, err error) {
 		case statepb.Op_DELETE:
 			delete(s.state, op.Key)
 			delete(s.version, op.Key)
-			//TODO (ameets):increment version or delete entry?
-			//s.version[op.Key] = index
 		default:
 			return false, errors.New("unknown operation type")
 		}

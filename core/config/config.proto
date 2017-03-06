@@ -17,7 +17,7 @@ message Config {
 	string block_pub = 10;
 	repeated BlockSigner signers = 11;
 	uint32 quorum = 12;
-	uint64 max_issuance_window = 13	;
+	uint64 max_issuance_window = 13;
 }
 
 message BlockSigner {
