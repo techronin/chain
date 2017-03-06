@@ -9,20 +9,20 @@ build:
 
 run0:
 	LISTEN=127.0.0.1:1999 \
-	DIR=$(HOME)/.cored0 \
+	CORED_DATA_DIR=$(HOME)/.cored0 \
 	DATABASE_URL=postgres:///core0?sslmode=disable \
 	cored
 
 run1:
 	LISTEN=127.0.0.1:1998 \
-	DIR=$(HOME)/.cored1 \
+	CORED_DATA_DIR=$(HOME)/.cored1 \
 	BOOTURL=http://127.0.0.1:1999/ \
 	DATABASE_URL=postgres:///core0?sslmode=disable \
 	cored
 
 run2:
 	LISTEN=127.0.0.1:1997 \
-	DIR=$(HOME)/.cored2 \
+	CORED_DATA_DIR=$(HOME)/.cored2 \
 	BOOTURL=http://127.0.0.1:1999/ \
 	DATABASE_URL=postgres:///core0?sslmode=disable \
 	cored

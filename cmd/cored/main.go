@@ -73,7 +73,7 @@ var (
 	rpsToken      = env.Int("RATELIMIT_TOKEN", 0)       // reqs/sec
 	rpsRemoteAddr = env.Int("RATELIMIT_REMOTE_ADDR", 0) // reqs/sec
 	indexTxs      = env.Bool("INDEX_TRANSACTIONS", true)
-	dir           = env.String("DIR", defaultDir())
+	dataDir       = env.String("CORED_DATA_DIR", defaultDir())
 	bootURL       = env.String("BOOTURL", "")
 
 	// build vars; initialized by the linker
@@ -147,7 +147,7 @@ func runServer() {
 	ctx := context.Background()
 	env.Parse()
 
-	raftDir := filepath.Join(*dir, "raft") // TODO(kr): better name for this
+	raftDir := filepath.Join(*dataDir, "raft") // TODO(kr): better name for this
 	raftDB, err := raft.Start(*listenAddr, raftDir, *bootURL)
 	if err != nil {
 		chainlog.Fatal(ctx, chainlog.KeyError, err)
