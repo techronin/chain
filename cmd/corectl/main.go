@@ -66,7 +66,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	raftDir := filepath.Join(*dir, "raft") // TODO(kr): better name for this
+	raftDir := filepath.Join(*dataDir, "raft") // TODO(kr): better name for this
 	raftDB, err := raft.Start(*listenAddr, raftDir, *bootURL)
 	if err != nil {
 		fatalln("error: could not connect to raftDB", err)
