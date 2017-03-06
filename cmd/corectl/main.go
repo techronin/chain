@@ -30,7 +30,7 @@ const version = "1.1.0"
 var (
 	dbURL      = env.String("DATABASE_URL", "postgres:///core?sslmode=disable")
 	listenAddr = env.String("LISTEN", ":1999")
-	dir        = env.String("DIR", defaultDir())
+	dataDir    = env.String("CORED_DATA_DIR", defaultDir())
 	bootURL    = env.String("BOOTURL", "")
 )
 
