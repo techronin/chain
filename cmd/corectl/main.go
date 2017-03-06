@@ -82,10 +82,10 @@ func main() {
 		help(os.Stderr)
 		os.Exit(1)
 	}
-	cmd.f(db, os.Args[2:])
+	cmd.f(db, raftDB, os.Args[2:])
 }
 
-func runMigrations(db *sql.DB, args []string) {
+func runMigrations(db *sql.DB, _ *raft.Service, args []string) {
 	const usage = "usage: corectl migrate [-status]"
 
 	var flags flag.FlagSet
