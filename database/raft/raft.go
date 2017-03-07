@@ -106,6 +106,12 @@ type proposal struct {
 	Instruction []byte
 }
 
+// nodeJoin is the data used when a new node joins a cluster
+type nodeJoin struct {
+	ID   uint64
+	Snap []byte
+}
+
 // Getter gets a value from a key-value store.
 type Getter interface {
 	Get(key string) (value []byte)
@@ -589,10 +595,7 @@ func (sv *Service) serveJoin(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	json.NewEncoder(w).Encode(struct {
-		ID   uint64
-		Snap []byte
-	}{newID, snapData})
+	json.NewEncoder(w).Encode(nodeJoin{newID, snapData})
 }
 
 // join attempts to join the cluster.
@@ -609,10 +612,7 @@ func (sv *Service) join(addr, baseURL string) error {
 	}
 	defer resp.Body.Close()
 
-	var x struct {
-		ID   uint64
-		Snap []byte
-	}
+	var x nodeJoin
 	err = json.NewDecoder(resp.Body).Decode(&x)
 	if err != nil {
 		return errors.Wrap(err)
