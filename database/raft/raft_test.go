@@ -15,15 +15,6 @@ var idCases = []struct {
 	{2, []byte{0, 0, 0, 0, 0, 0, 0, 2, 0x6d, 0x13, 0xc2, 0x7d}},
 }
 
-var idErrorCases = []struct {
-	data []byte
-}{
-	{[]byte{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31, 0x89, 0}}, //add extra byte
-	{[]byte{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31}},          //missing byte
-	{[]byte{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31, 0x0}},     //bad crc
-	{[]byte{0, 0, 0, 0, 0, 0, 0, 0, 0x8c, 0x28, 0xb2, 0x8a}},    //bad id
-}
-
 func TestWriteID(t *testing.T) {
 	dir, err := ioutil.TempDir("", "raft_test.go")
 	if err != nil {
@@ -71,6 +62,13 @@ func TestReadID(t *testing.T) {
 	}
 }
 
+var idErrorCases = [][]byte{
+	{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31, 0x89, 0}, //add extra byte
+	{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31},          //missing byte
+	{0, 0, 0, 0, 0, 0, 0, 1, 0x7e, 0x43, 0x31, 0x0},     //bad crc
+	{0, 0, 0, 0, 0, 0, 0, 0, 0x8c, 0x28, 0xb2, 0x8a},    //bad id
+}
+
 func TestReadIDError(t *testing.T) {
 	dir, err := ioutil.TempDir("", "raft_test.go")
 	if err != nil {
@@ -78,7 +76,7 @@ func TestReadIDError(t *testing.T) {
 	}
 
 	for _, test := range idErrorCases {
-		err = ioutil.WriteFile(filepath.Join(dir, "id"), test.data, 0666)
+		err = ioutil.WriteFile(filepath.Join(dir, "id"), test, 0666)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -86,7 +84,7 @@ func TestReadIDError(t *testing.T) {
 
 		_, err := readID(dir)
 		if err == nil {
-			t.Errorf("readID of %v => err = nil, want error", test.data)
+			t.Errorf("readID of %v => err = nil, want error", test)
 		}
 	}
 }
