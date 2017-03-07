@@ -794,8 +794,7 @@ func (sv *Service) recover() (*wal.WAL, error) {
 	}
 
 	sv.raftStorage.ApplySnapshot(raftSnap)
-	if raft.IsEmptySnap(raftSnap) {
-	} else {
+	if !raft.IsEmptySnap(raftSnap) {
 		err = sv.state.RestoreSnapshot(raftSnap.Data, raftSnap.Metadata.Index)
 		if err != nil {
 			return nil, errors.Wrap(err)
