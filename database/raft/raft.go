@@ -665,14 +665,6 @@ func decodeSnapshot(data []byte, snapshot *raftpb.Snapshot) error {
 	return errors.Wrap(err)
 }
 
-// TODO(kr): under what circumstances should we do this?
-func (sv *Service) evict(nodeID uint64) {
-	//cc := raftpb.ConfChange{
-	//	Type:   raftpb.ConfChangeRemoveNode,
-	//	NodeID: nodeID,
-	//}
-}
-
 func (sv *Service) applyEntry(ent raftpb.Entry, writers map[string]chan bool) {
 	log.Write(context.Background(), "index", ent.Index, "ent", ent)
 
