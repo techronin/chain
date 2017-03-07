@@ -625,7 +625,11 @@ func (sv *Service) join(addr, baseURL string) error {
 	}
 
 	ctx := context.Background()
-	sv.raftStorage.ApplySnapshot(raftSnap)
+	err = sv.raftStorage.ApplySnapshot(raftSnap)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	if raft.IsEmptySnap(raftSnap) {
 		log.Write(ctx, "at", "joined", "appliedindex", 0, "msg", "(empty snap)")
 	} else {
@@ -748,7 +752,7 @@ func (sv *Service) send(msgs []raftpb.Message) {
 func sendmsg(addr string, data []byte) {
 	resp, err := http.Post("http://"+addr+"/raft/msg", contentType, bytes.NewReader(data))
 	if err != nil {
-		log.Error(context.Background(), err)
+		log.Write(context.Background(), log.KeyWarning, err)
 		return
 	}
 	defer resp.Body.Close()

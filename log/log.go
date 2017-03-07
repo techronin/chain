@@ -46,7 +46,8 @@ const (
 
 	KeyMessage = "message" // produced by Message
 	KeyError   = "error"   // produced by Error
-	KeyStack   = "stack"   // used by Write to print stack on subsequent lines
+	KeyWarning = "warning"
+	KeyStack   = "stack" // used by Write to print stack on subsequent lines
 
 	keyLogError = "log-error" // for errors produced by the log package itself
 )
