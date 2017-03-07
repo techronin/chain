@@ -5,8 +5,7 @@ import (
 )
 
 func randID() []byte {
-	c := 16 // prevent collisions
-	b := make([]byte, c)
+	b := make([]byte, 16) // 16 is long enough to prevent collisions
 	_, err := rand.Read(b)
 	if err != nil {
 		panic(err)
