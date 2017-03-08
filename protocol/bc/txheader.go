@@ -39,7 +39,7 @@ func (h *TxHeader) MaxTimeMS() uint64 {
 	return h.body.MaxTimeMS
 }
 
-func NewHeader(version uint64, results []Entry, data Hash, minTimeMS, maxTimeMS uint64) *TxHeader {
+func NewTxHeader(version uint64, results []Entry, data Hash, minTimeMS, maxTimeMS uint64) *TxHeader {
 	h := new(TxHeader)
 	h.body.Version = version
 	h.body.Data = data
