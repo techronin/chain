@@ -267,7 +267,11 @@ func opOutputID(vm *virtualMachine) error {
 		return err
 	}
 
-	outid := vm.tx.ResultID(vm.inputIndex)
+	sp, ok := vm.tx.TxInputs[vm.inputIndex].(*bc.Spend)
+	if !ok {
+		return ErrContext
+	}
+	outid := sp.SpentOutputID()
 	return vm.push(outid[:], true)
 }
 
