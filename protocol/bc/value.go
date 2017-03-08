@@ -6,7 +6,8 @@ type valueSource struct {
 	Position uint64
 
 	// The Entry corresponding to Ref, if available
-	Entry
+	// The struct tag excludes the field from hashing
+	Entry `entry:"-"`
 }
 
 type ValueDestination struct {
@@ -14,5 +15,6 @@ type ValueDestination struct {
 	Position uint64
 
 	// The Entry corresponding to Ref, if available
-	Entry
+	// The struct tag excludes the field from hashing
+	Entry `entry:"-"`
 }

@@ -25,7 +25,15 @@ type Entry interface {
 var errInvalidValue = errors.New("invalid value")
 
 func EntryID(e Entry) (hash Hash) {
+	// This nil test only handles the case where e is the zero value of
+	// the entry interface.
 	if e == nil {
+		return hash
+	}
+
+	// This nil test handles the case where e is a nil value with a
+	// concrete type.
+	if reflect.ValueOf(e).IsNil() {
 		return hash
 	}
 
@@ -50,7 +58,7 @@ func EntryID(e Entry) (hash Hash) {
 	return hash
 }
 
-func writeForHash(w io.Writer, c interface{}) error {
+func writeForHash(w io.Writer, c interface{}) (err error) {
 	switch v := c.(type) {
 	case byte:
 		_, err := w.Write([]byte{v})
@@ -61,24 +69,18 @@ func writeForHash(w io.Writer, c interface{}) error {
 	case []byte:
 		_, err := blockchain.WriteVarstr31(w, v)
 		return errors.Wrapf(err, "writing []byte (len %d) for hash", len(v))
+	case [][]byte:
+		_, err := blockchain.WriteVarstrList(w, v)
+		return errors.Wrapf(err, "writing [][]byte (len %d) for hash", len(v))
 	case string:
 		_, err := blockchain.WriteVarstr31(w, []byte(v))
 		return errors.Wrapf(err, "writing string (len %d) for hash", len(v))
-
-		// TODO: The rest of these are all aliases for [32]byte. Do we
-		// really need them all?
-
 	case Hash:
 		_, err := w.Write(v[:])
 		return errors.Wrap(err, "writing Hash for hash")
 	case AssetID:
 		_, err := w.Write(v[:])
 		return errors.Wrap(err, "writing AssetID for hash")
-
-	case Entry:
-		// This case allows us to include entry pointers in objects
-		// without affecting their hashes.
-		return nil
 	}
 
 	// The two container types in the spec (List and Struct)
@@ -104,7 +106,13 @@ func writeForHash(w io.Writer, c interface{}) error {
 		return nil
 
 	case reflect.Struct:
-		for i := 0; i < v.NumField(); i++ {
+		typ := v.Type()
+		for i := 0; i < typ.NumField(); i++ {
+			sf := typ.Field(i)
+			if sf.Tag.Get("entry") == "-" {
+				// exclude this field from hashing
+				continue
+			}
 			c := v.Field(i)
 			if !c.CanInterface() {
 				return errInvalidValue
