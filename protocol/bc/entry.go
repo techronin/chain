@@ -74,6 +74,11 @@ func writeForHash(w io.Writer, c interface{}) error {
 	case AssetID:
 		_, err := w.Write(v[:])
 		return errors.Wrap(err, "writing AssetID for hash")
+
+	case Entry:
+		// This case allows us to include entry pointers in objects
+		// without affecting their hashes.
+		return nil
 	}
 
 	// The two container types in the spec (List and Struct)

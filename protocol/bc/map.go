@@ -26,14 +26,22 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 	// issuances.  Do spends first so the entry ID of the first spend is
 	// available in case an issuance needs it for its anchor.
 
-	var firstSpend *Spend
-	muxSources := make([]valueSource, len(tx.Inputs))
+	var (
+		firstSpend *Spend
+		spends     []*Spend
+		issuances  []*Issuance
+		muxSources = make([]valueSource, len(tx.Inputs))
+	)
 
 	for i, inp := range tx.Inputs {
 		if oldSp, ok := inp.TypedInput.(*SpendInput); ok {
 			prog := Program{VMVersion: oldSp.VMVersion, Code: oldSp.ControlProgram}
-			out := NewOutput(prog, oldSp.RefDataHash, 0) // ordinal doesn't matter for prevouts, only for result outputs
-			out.setSourceID(oldSp.SourceID, oldSp.AssetAmount, oldSp.SourcePosition)
+			src := valueSource{
+				Ref:      oldSp.SourceID,
+				Value:    oldSp.AssetAmount,
+				Position: oldSp.SourcePosition,
+			}
+			out := NewOutput(src, prog, oldSp.RefDataHash, 0) // ordinal doesn't matter for prevouts, only for result outputs
 			sp := NewSpend(out, hashData(inp.ReferenceData), i)
 			var id Hash
 			id, err = addEntry(sp)
@@ -44,10 +52,12 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 			muxSources[i] = valueSource{
 				Ref:   id,
 				Value: oldSp.AssetAmount,
+				Entry: sp,
 			}
 			if firstSpend == nil {
 				firstSpend = sp
 			}
+			spends = append(spends, sp)
 		}
 	}
 
@@ -124,48 +134,70 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 			muxSources[i] = valueSource{
 				Ref:   issID,
 				Value: val,
+				Entry: iss,
 			}
+			issuances = append(issuances, iss)
 		}
 	}
 
-	mux := NewMux(Program{VMVersion: 1, Code: []byte{0x51}}) // 0x51 == vm.OP_TRUE, minus a circular dependency on protocol/vm
-	for _, src := range muxSources {
-		// TODO(bobg): addSource will recompute the hash of
-		// entryMap[src.Ref], which is already available as src.Ref - fix
-		// this (and a number of other such places)
-		mux.addSource(entryMap[src.Ref], src.Value, src.Position)
-	}
-	_, err = addEntry(mux)
+	mux := NewMux(muxSources, Program{VMVersion: 1, Code: []byte{0x51}}) // 0x51 == vm.OP_TRUE, minus a circular dependency on protocol/vm
+	var muxID Hash
+	muxID, err = addEntry(mux)
 	if err != nil {
 		err = errors.Wrap(err, "adding mux entry")
 		return
 	}
 
+	for _, sp := range spends {
+		sp.SetDestination(muxID, uint64(sp.Ordinal()), mux)
+	}
+	for _, iss := range issuances {
+		iss.SetDestination(muxID, uint64(iss.Ordinal()), mux)
+	}
+
 	var results []Entry
 
 	for i, out := range tx.Outputs {
+		src := valueSource{
+			Ref:      muxID,
+			Value:    out.AssetAmount,
+			Position: uint64(i),
+			Entry:    mux,
+		}
+		var dest ValueDestination
 		if isUnspendable(out.ControlProgram) {
 			// retirement
-			r := NewRetirement(hashData(out.ReferenceData), i)
-			r.setSource(mux, out.AssetAmount, uint64(i))
-			_, err = addEntry(r)
+			r := NewRetirement(src, hashData(out.ReferenceData), i)
+			var rID Hash
+			rID, err = addEntry(r) // xxx save ID for use in header (or simply skip the addEntry call?)
 			if err != nil {
 				err = errors.Wrapf(err, "adding retirement entry for output %d", i)
 				return
 			}
 			results = append(results, r)
+			dest = ValueDestination{
+				Ref:      rID,
+				Position: 0,
+				Entry:    r,
+			}
 		} else {
 			// non-retirement
 			prog := Program{out.VMVersion, out.ControlProgram}
-			o := NewOutput(prog, hashData(out.ReferenceData), i)
-			o.setSource(mux, out.AssetAmount, uint64(i))
-			_, err = addEntry(o)
+			o := NewOutput(src, prog, hashData(out.ReferenceData), i)
+			var oID Hash
+			oID, err = addEntry(o)
 			if err != nil {
 				err = errors.Wrapf(err, "adding output entry for output %d", i)
 				return
 			}
 			results = append(results, o)
+			dest = ValueDestination{
+				Ref:      oID,
+				Position: 0,
+				Entry:    o,
+			}
 		}
+		mux.witness.Destinations = append(mux.witness.Destinations, dest)
 	}
 
 	h := NewTxHeader(tx.Version, results, hashData(tx.ReferenceData), tx.MinTime, tx.MaxTime)

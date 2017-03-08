@@ -233,7 +233,7 @@ func TestVerifyTxInput(t *testing.T) {
 			Inputs: []*bc.TxInput{c.input},
 		})
 
-		gotErr := VerifyTxInput(tx, 0)
+		gotErr := VerifyTxInput(tx.TxEntries, 0)
 
 		if errors.Root(gotErr) != c.wantErr {
 			t.Errorf("VerifyTxInput(%d) err = %v want %v", i, gotErr, c.wantErr)
@@ -390,7 +390,7 @@ func TestStep(t *testing.T) {
 		startVM: &virtualMachine{
 			program:  []byte{byte(OP_INDEX)},
 			runLimit: 1,
-			tx:       &bc.Tx{},
+			tx:       bc.NewTx(bc.TxData{}).TxEntries,
 		},
 		wantErr: ErrRunLimitExceeded,
 	}, {
@@ -467,7 +467,7 @@ func TestVerifyTxInputQuickCheck(t *testing.T) {
 		tx := bc.NewTx(bc.TxData{
 			Inputs: []*bc.TxInput{bc.NewSpendInput(witnesses, bc.Hash{}, bc.AssetID{}, 10, 0, program, bc.Hash{}, nil)},
 		})
-		verifyTxInput(tx, 0)
+		verifyTxInput(tx.TxEntries, 0)
 		return true
 	}
 	if err := quick.Check(f, nil); err != nil {

@@ -19,7 +19,7 @@ const CurrentTransactionVersion = 1
 // Tx holds a transaction along with its hash.
 type Tx struct {
 	TxData
-	TxHashes `json:"-"`
+	*TxEntries `json:"-"`
 }
 
 func (tx *Tx) UnmarshalText(p []byte) error {
@@ -27,12 +27,12 @@ func (tx *Tx) UnmarshalText(p []byte) error {
 		return err
 	}
 
-	hashes, err := ComputeTxHashes(&tx.TxData)
+	txEntries, err := ComputeTxEntries(&tx.TxData)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	tx.TxHashes = *hashes
+	tx.TxEntries = txEntries
 	return nil
 }
 
@@ -40,14 +40,14 @@ func (tx *Tx) UnmarshalText(p []byte) error {
 // If you have already computed the hash, use struct literal
 // notation to make a Tx object directly.
 func NewTx(data TxData) *Tx {
-	hashes, err := ComputeTxHashes(&data)
+	txEntries, err := ComputeTxEntries(&data)
 	if err != nil {
 		panic(err)
 	}
 
 	return &Tx{
-		TxData:   data,
-		TxHashes: *hashes,
+		TxData:    data,
+		TxEntries: txEntries,
 	}
 }
 
@@ -221,7 +221,7 @@ func (tx *TxData) IssuanceHash(n int) (h Hash, err error) {
 }
 
 func (tx *Tx) OutputID(outputIndex uint32) Hash {
-	return tx.Results[outputIndex].ID
+	return tx.ResultID(outputIndex)
 }
 
 func (tx *TxData) MarshalText() ([]byte, error) {

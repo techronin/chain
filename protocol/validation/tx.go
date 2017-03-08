@@ -250,7 +250,7 @@ func CheckTxWellFormed(tx *bc.Tx) error {
 	}
 
 	for i := range tx.Inputs {
-		err := vm.VerifyTxInput(tx, uint32(i))
+		err := vm.VerifyTxInput(tx.TxEntries, uint32(i))
 		if err != nil {
 			return badTxErrf(err, "validation failed in script execution, input %d", i)
 		}
