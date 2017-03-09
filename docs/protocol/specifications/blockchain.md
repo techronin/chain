@@ -644,14 +644,6 @@ Arguments                  | List<String>                                       
 
 #### Issuance 2 Validation
 
-Witness field       | Type                                      | Description
---------------------|-------------------------------------------|----------------
-Destination         | ValueDestination2                         | The Destination ("forward pointer") for the value contained in this spend. This can point directly to an `Output`, or to a `Mux`, which points to `Output` entries via its own `Destinations`.
-AssetDefinition     | [Asset Definition](#asset-definition)     | Asset definition for the asset being issued.
-Arguments           | List<String>                              | Arguments for the control program contained in the SpentOutput.
-
-#### Issuance Validation
-
 **Inputs:**
 
 1. Issuance entry,
