@@ -15,7 +15,7 @@ func BenchmarkValidateTx(b *testing.B) {
 	c := prottest.NewChain(b)
 	tx := prottest.NewIssuanceTx(b, c)
 	for i := 0; i < b.N; i++ {
-		err := validation.CheckTxWellFormed(tx)
+		err := validation.CheckTxWellFormed(tx.TxEntries)
 		if err != nil {
 			b.Fatal(err)
 		}

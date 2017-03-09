@@ -32,7 +32,7 @@ var (
 // See $CHAIN/protocol/doc/spec/validation.md#accept-block.
 // It evaluates the prevBlock's consensus program,
 // then calls ValidateBlock.
-func ValidateBlockForAccept(ctx context.Context, snapshot *state.Snapshot, initialBlockHash bc.Hash, prevBlock, block *bc.Block, validateTx func(*bc.Tx) error) error {
+func ValidateBlockForAccept(ctx context.Context, snapshot *state.Snapshot, initialBlockHash bc.Hash, prevBlock, block *bc.Block, validateTx func(*bc.TxEntries) error) error {
 	if prevBlock != nil {
 		err := vm.VerifyBlockHeader(&prevBlock.BlockHeader, block)
 		if err != nil {
@@ -54,7 +54,7 @@ func ValidateBlockForAccept(ctx context.Context, snapshot *state.Snapshot, initi
 // See $CHAIN/protocol/doc/spec/validation.md#validate-block.
 // Note that it does not execute prevBlock's consensus program.
 // (See ValidateBlockForAccept for that.)
-func ValidateBlock(ctx context.Context, snapshot *state.Snapshot, initialBlockHash bc.Hash, prevBlock, block *bc.Block, validateTx func(*bc.Tx) error) error {
+func ValidateBlock(ctx context.Context, snapshot *state.Snapshot, initialBlockHash bc.Hash, prevBlock, block *bc.Block, validateTx func(*bc.TxEntries) error) error {
 
 	var g errgroup.Group
 	// Do all of the unparallelizable work, plus validating the block
@@ -74,11 +74,11 @@ func ValidateBlock(ctx context.Context, snapshot *state.Snapshot, initialBlockHa
 		// TODO(erykwalder): consider writing to a copy of the state tree
 		// of the one provided and make the caller call ApplyBlock as well
 		for _, tx := range block.Transactions {
-			err = ConfirmTx(snapshot, initialBlockHash, block.Version, block.TimestampMS, tx)
+			err = ConfirmTx(snapshot, initialBlockHash, block.Version, block.TimestampMS, tx.TxEntries)
 			if err != nil {
 				return err
 			}
-			err = ApplyTx(snapshot, tx)
+			err = ApplyTx(snapshot, tx.TxEntries)
 			if err != nil {
 				return err
 			}
@@ -95,7 +95,7 @@ func ValidateBlock(ctx context.Context, snapshot *state.Snapshot, initialBlockHa
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
 		g.Go(func() error {
 			for tx := range ch {
-				if err := validateTx(tx); err != nil {
+				if err := validateTx(tx.TxEntries); err != nil {
 					return err
 				}
 			}
@@ -113,7 +113,7 @@ func ValidateBlock(ctx context.Context, snapshot *state.Snapshot, initialBlockHa
 func ApplyBlock(snapshot *state.Snapshot, block *bc.Block) error {
 	snapshot.PruneIssuances(block.TimestampMS)
 	for _, tx := range block.Transactions {
-		err := ApplyTx(snapshot, tx)
+		err := ApplyTx(snapshot, tx.TxEntries)
 		if err != nil {
 			return err
 		}

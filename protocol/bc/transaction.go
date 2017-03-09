@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 
-	"chain/crypto/sha3pool"
 	"chain/encoding/blockchain"
 	"chain/errors"
 )
@@ -45,6 +44,14 @@ func (tx *Tx) SetInputArguments(n uint32, args [][]byte) {
 	case *Spend:
 		e.SetArguments(args)
 	}
+}
+
+func (tx *Tx) IssuanceHash(n uint32) Hash {
+	return tx.TxEntries.TxInputIDs[n]
+}
+
+func (tx *Tx) OutputID(outputIndex uint32) Hash {
+	return tx.ResultID(outputIndex)
 }
 
 // NewTx returns a new Tx containing data and its hash.
@@ -200,39 +207,6 @@ func (tx *TxData) readFrom(r io.Reader) error {
 // does not read the enclosing extensible string
 func (tx *TxData) readCommonWitness(r io.Reader) error {
 	return nil
-}
-
-func (tx *TxData) IssuanceHash(n int) (h Hash, err error) {
-	if n < 0 || n >= len(tx.Inputs) {
-		return h, fmt.Errorf("no input %d", n)
-	}
-	ii, ok := tx.Inputs[n].TypedInput.(*IssuanceInput)
-	if !ok {
-		return h, fmt.Errorf("not an issuance input")
-	}
-	buf := sha3pool.Get256()
-	defer sha3pool.Put256(buf)
-
-	_, err = blockchain.WriteVarstr31(buf, ii.Nonce)
-	if err != nil {
-		return h, err
-	}
-	assetID := ii.AssetID()
-	buf.Write(assetID[:])
-	_, err = blockchain.WriteVarint63(buf, tx.MinTime)
-	if err != nil {
-		return h, err
-	}
-	_, err = blockchain.WriteVarint63(buf, tx.MaxTime)
-	if err != nil {
-		return h, err
-	}
-	buf.Read(h[:])
-	return h, nil
-}
-
-func (tx *Tx) OutputID(outputIndex uint32) Hash {
-	return tx.ResultID(outputIndex)
 }
 
 func (tx *TxData) MarshalText() ([]byte, error) {

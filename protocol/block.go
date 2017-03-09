@@ -74,8 +74,8 @@ func (c *Chain) GenerateBlock(ctx context.Context, prev *bc.Block, snapshot *sta
 			continue
 		}
 
-		if validation.ConfirmTx(result, c.InitialBlockHash, bc.NewBlockVersion, timestampMS, tx) == nil {
-			err = validation.ApplyTx(result, tx)
+		if validation.ConfirmTx(result, c.InitialBlockHash, bc.NewBlockVersion, timestampMS, tx.TxEntries) == nil {
+			err = validation.ApplyTx(result, tx.TxEntries)
 			if err != nil {
 				return nil, nil, err
 			}

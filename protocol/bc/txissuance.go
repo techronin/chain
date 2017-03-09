@@ -47,6 +47,10 @@ func (iss *Issuance) Destination() ValueDestination {
 	return iss.witness.Destination
 }
 
+func (iss *Issuance) InitialBlockID() Hash {
+	return iss.witness.InitialBlockID
+}
+
 func (iss *Issuance) IssuanceProgram() Program {
 	return iss.witness.IssuanceProgram
 }
