@@ -69,7 +69,7 @@ func opCheckOutput(vm *virtualMachine) error {
 	}
 	muxDests := mux.Destinations()
 	if index >= int64(len(muxDests)) {
-		return vm.pushBool(false, true) // xxx or should this be a range/badvalue error?
+		return ErrBadValue // xxx or simply return false?
 	}
 
 	someChecks := func(resAssetID bc.AssetID, resAmount uint64, resData bc.Hash) bool {
