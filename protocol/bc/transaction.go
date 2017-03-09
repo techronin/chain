@@ -36,6 +36,17 @@ func (tx *Tx) UnmarshalText(p []byte) error {
 	return nil
 }
 
+// SetInputArguments sets the Arguments field in input n.
+func (tx *Tx) SetInputArguments(n int, args [][]byte) {
+	tx.Inputs[n].SetArguments(args)
+	switch e := tx.TxEntries.TxInputs[n].(type) {
+	case *Issuance:
+		e.SetArguments(args)
+	case *Spend:
+		e.SetArguments(args)
+	}
+}
+
 // NewTx returns a new Tx containing data and its hash.
 // If you have already computed the hash, use struct literal
 // notation to make a Tx object directly.
