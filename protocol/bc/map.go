@@ -109,7 +109,7 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 					code = append([]byte{0x4e}, b[:]...)
 				}
 				code = append(code, oldIss.Nonce...)
-				code = append(code, []byte{0x75, 0xc2, 0x20}...)
+				code = append(code, 0x75, 0xc2, 0x20)
 				code = append(code, assetID[:]...)
 				code = append(code, 0x87)
 

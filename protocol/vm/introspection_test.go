@@ -3,6 +3,7 @@ package vm
 import (
 	"testing"
 
+	"chain/crypto/sha3pool"
 	"chain/protocol/bc"
 	"chain/testutil"
 )
@@ -97,11 +98,15 @@ func TestBlockTime(t *testing.T) {
 
 func TestOutputIDAndNonceOp(t *testing.T) {
 	var zeroHash bc.Hash
-	nonce := []byte{36, 37, 38}
+	nonceBytes := []byte{36, 37, 38}
+	issuanceProgram := []byte("issueprog")
+	var emptyHash bc.Hash
+	sha3pool.Sum256(emptyHash[:], nil)
+	assetID := bc.ComputeAssetID(issuanceProgram, zeroHash, 1, emptyHash)
 	tx := bc.NewTx(bc.TxData{
 		Inputs: []*bc.TxInput{
-			bc.NewSpendInput(nil, bc.Hash{}, bc.AssetID{1}, 5, 0, []byte("spendprog"), bc.Hash{}, []byte("ref")),
-			bc.NewIssuanceInput(nonce, 6, nil, zeroHash, []byte("issueprog"), nil, nil),
+			bc.NewSpendInput(nil, bc.Hash{}, assetID, 5, 0, []byte("spendprog"), bc.Hash{}, []byte("ref")),
+			bc.NewIssuanceInput(nonceBytes, 6, nil, zeroHash, issuanceProgram, nil, nil),
 		},
 	})
 	outputID, err := tx.Inputs[0].SpentOutputID()
@@ -155,7 +160,21 @@ func TestOutputIDAndNonceOp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedStack = [][]byte{nonce}
+
+	expectedNonceProgCode := append([]byte{0x3}, nonceBytes...)
+	expectedNonceProgCode = append(expectedNonceProgCode, byte(OP_DROP), byte(OP_ASSET))
+	expectedNonceProgCode = append(expectedNonceProgCode, 0x20)
+	expectedNonceProgCode = append(expectedNonceProgCode, assetID[:]...)
+	expectedNonceProgCode = append(expectedNonceProgCode, byte(OP_EQUAL))
+	expectedNonceProg := bc.Program{
+		VMVersion: 1,
+		Code:      expectedNonceProgCode,
+	}
+	expectedNonceTimeRange := bc.NewTimeRange(tx.MinTimeMS(), tx.MaxTimeMS())
+	expectedNonce := bc.NewNonce(expectedNonceProg, expectedNonceTimeRange)
+	expectedNonceID := bc.EntryID(expectedNonce)
+
+	expectedStack = [][]byte{expectedNonceID[:]}
 	if !testutil.DeepEqual(vm.dataStack, expectedStack) {
 		t.Errorf("expected stack %v, got %v", expectedStack, vm.dataStack)
 	}
