@@ -43,6 +43,7 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 			}
 			out := NewOutput(src, prog, oldSp.RefDataHash, 0) // ordinal doesn't matter for prevouts, only for result outputs
 			sp := NewSpend(out, hashData(inp.ReferenceData), i)
+			sp.SetArguments(oldSp.Arguments)
 			var id Hash
 			id, err = addEntry(sp)
 			if err != nil {
@@ -124,6 +125,10 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 			val := inp.AssetAmount()
 
 			iss := NewIssuance(nonce, val, hashData(inp.ReferenceData), i)
+			iss.SetInitialBlockID(oldIss.InitialBlock)
+			iss.SetAssetDefinitionHash(hashData(oldIss.AssetDefinition))
+			iss.SetIssuanceProgram(Program{VMVersion: oldIss.VMVersion, Code: oldIss.IssuanceProgram})
+			iss.SetArguments(oldIss.Arguments)
 			var issID Hash
 			issID, err = addEntry(iss)
 			if err != nil {

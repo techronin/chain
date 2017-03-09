@@ -59,6 +59,10 @@ func (s *Spend) SetDestination(id Hash, pos uint64, e Entry) {
 	}
 }
 
+func (s *Spend) SetArguments(args [][]byte) {
+	s.witness.Arguments = args
+}
+
 func NewSpend(out *Output, data Hash, ordinal int) *Spend {
 	s := new(Spend)
 	s.body.SpentOutput = EntryID(out)

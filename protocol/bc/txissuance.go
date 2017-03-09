@@ -63,6 +63,22 @@ func (iss *Issuance) SetDestination(id Hash, pos uint64, e Entry) {
 	}
 }
 
+func (iss *Issuance) SetInitialBlockID(hash Hash) {
+	iss.witness.InitialBlockID = hash
+}
+
+func (iss *Issuance) SetAssetDefinitionHash(hash Hash) {
+	iss.witness.AssetDefinitionHash = hash
+}
+
+func (iss *Issuance) SetIssuanceProgram(prog Program) {
+	iss.witness.IssuanceProgram = prog
+}
+
+func (iss *Issuance) SetArguments(args [][]byte) {
+	iss.witness.Arguments = args
+}
+
 func NewIssuance(anchor Entry, value AssetAmount, data Hash, ordinal int) *Issuance {
 	iss := new(Issuance)
 	iss.body.Anchor = EntryID(anchor)
