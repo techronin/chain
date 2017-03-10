@@ -9,13 +9,13 @@ import (
 )
 
 func TestNextProgram(t *testing.T) {
-	block := &bc.Block{
+	block := bc.MapBlock(&bc.Block{
 		BlockHeader: bc.BlockHeader{
 			BlockCommitment: bc.BlockCommitment{
 				ConsensusProgram: []byte{0x1, 0x2, 0x3},
 			},
 		},
-	}
+	})
 	prog, err := Assemble("NEXTPROGRAM 0x010203 EQUAL")
 	if err != nil {
 		t.Fatal(err)
@@ -54,11 +54,11 @@ func TestNextProgram(t *testing.T) {
 }
 
 func TestBlockTime(t *testing.T) {
-	block := &bc.Block{
+	block := bc.MapBlock(&bc.Block{
 		BlockHeader: bc.BlockHeader{
 			TimestampMS: 3263827,
 		},
-	}
+	})
 	prog, err := Assemble("BLOCKTIME 3263827 NUMEQUAL")
 	if err != nil {
 		t.Fatal(err)

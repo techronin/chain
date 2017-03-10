@@ -36,7 +36,7 @@ type virtualMachine struct {
 	tx         *bc.TxEntries
 	inputIndex uint32
 
-	block *bc.Block
+	block *bc.BlockEntries
 }
 
 // ErrFalseVMResult is one of the ways for a transaction to fail validation
@@ -102,7 +102,7 @@ func verifyTxInput(tx *bc.TxEntries, inputIndex uint32) error {
 	return wrapErr(err, vm, args)
 }
 
-func VerifyBlockHeader(prev *bc.BlockHeader, block *bc.Block) (err error) {
+func VerifyBlockHeader(prev *bc.BlockHeaderEntry, block *bc.BlockEntries) (err error) {
 	defer func() {
 		if panErr := recover(); panErr != nil {
 			err = ErrUnexpected
@@ -111,18 +111,18 @@ func VerifyBlockHeader(prev *bc.BlockHeader, block *bc.Block) (err error) {
 	return verifyBlockHeader(prev, block)
 }
 
-func verifyBlockHeader(prev *bc.BlockHeader, block *bc.Block) error {
+func verifyBlockHeader(prev *bc.BlockHeaderEntry, block *bc.BlockEntries) error {
 	vm := &virtualMachine{
 		block: block,
 
 		expansionReserved: true,
 
-		mainprog: prev.ConsensusProgram,
-		program:  prev.ConsensusProgram,
+		mainprog: prev.NextConsensusProgram(),
+		program:  prev.NextConsensusProgram(),
 		runLimit: initialRunLimit,
 	}
 
-	for _, arg := range block.Witness {
+	for _, arg := range block.Arguments() {
 		err := vm.push(arg, false)
 		if err != nil {
 			return err
@@ -133,7 +133,7 @@ func verifyBlockHeader(prev *bc.BlockHeader, block *bc.Block) error {
 	if err == nil && vm.falseResult() {
 		err = ErrFalseVMResult
 	}
-	return wrapErr(err, vm, block.Witness)
+	return wrapErr(err, vm, block.Arguments())
 }
 
 // falseResult returns true iff the stack is empty or the top

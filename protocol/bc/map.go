@@ -217,8 +217,18 @@ func mapTx(tx *TxData) (headerID Hash, hdr *TxHeader, entryMap map[Hash]Entry, e
 
 func mapBlockHeader(old *BlockHeader) (bhID Hash, bh *BlockHeaderEntry) {
 	bh = NewBlockHeader(old.Version, old.Height, old.PreviousBlockHash, old.TimestampMS, old.TransactionsMerkleRoot, old.AssetsMerkleRoot, old.ConsensusProgram)
+	bh.SetArguments(old.Witness)
 	bhID = EntryID(bh)
 	return
+}
+
+func MapBlock(old *Block) *BlockEntries {
+	b := new(BlockEntries)
+	b.ID, b.BlockHeaderEntry = mapBlockHeader(&old.BlockHeader)
+	for _, oldTx := range old.Transactions {
+		b.Transactions = append(b.Transactions, oldTx.TxEntries)
+	}
+	return b
 }
 
 func hashData(data []byte) (h Hash) {

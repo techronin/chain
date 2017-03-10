@@ -242,35 +242,35 @@ func TestVerifyTxInput(t *testing.T) {
 }
 
 func TestVerifyBlockHeader(t *testing.T) {
-	block := &bc.Block{
+	block := bc.MapBlock(&bc.Block{
 		BlockHeader: bc.BlockHeader{
 			BlockWitness: bc.BlockWitness{
 				Witness: [][]byte{{2}, {3}},
 			},
 		},
-	}
-	prevBlock := &bc.Block{
+	})
+	prevBlock := bc.MapBlock(&bc.Block{
 		BlockHeader: bc.BlockHeader{
 			BlockCommitment: bc.BlockCommitment{
 				ConsensusProgram: []byte{byte(OP_ADD), byte(OP_5), byte(OP_NUMEQUAL)},
 			},
 		},
-	}
+	})
 
-	gotErr := VerifyBlockHeader(&prevBlock.BlockHeader, block)
+	gotErr := VerifyBlockHeader(prevBlock.BlockHeaderEntry, block)
 	if gotErr != nil {
 		t.Errorf("unexpected error: %v", gotErr)
 	}
 
-	block = &bc.Block{
+	block = bc.MapBlock(&bc.Block{
 		BlockHeader: bc.BlockHeader{
 			BlockWitness: bc.BlockWitness{
 				Witness: [][]byte{make([]byte, 50000)},
 			},
 		},
-	}
+	})
 
-	gotErr = VerifyBlockHeader(&prevBlock.BlockHeader, block)
+	gotErr = VerifyBlockHeader(prevBlock.BlockHeaderEntry, block)
 	if errors.Root(gotErr) != ErrRunLimitExceeded {
 		t.Error("expected block to exceed run limit")
 	}
@@ -487,17 +487,19 @@ func TestVerifyBlockHeaderQuickCheck(t *testing.T) {
 				ok = false
 			}
 		}()
-		prev := &bc.BlockHeader{
-			BlockCommitment: bc.BlockCommitment{
-				ConsensusProgram: program,
+		prev := bc.MapBlock(&bc.Block{
+			BlockHeader: bc.BlockHeader{
+				BlockCommitment: bc.BlockCommitment{
+					ConsensusProgram: program,
+				},
 			},
-		}
-		block := &bc.Block{BlockHeader: bc.BlockHeader{
+		})
+		block := bc.MapBlock(&bc.Block{BlockHeader: bc.BlockHeader{
 			BlockWitness: bc.BlockWitness{
 				Witness: witnesses,
 			},
-		}}
-		verifyBlockHeader(prev, block)
+		}})
+		verifyBlockHeader(prev.BlockHeaderEntry, block)
 		return true
 	}
 	if err := quick.Check(f, nil); err != nil {

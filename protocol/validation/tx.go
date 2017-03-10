@@ -264,8 +264,8 @@ func ApplyTx(snapshot *state.Snapshot, tx *bc.TxEntries) error {
 	}
 
 	for i, res := range tx.Results {
-		if _, ok := res.(*bc.Spend); ok {
-			err := snapshot.Tree.Insert(tx.TxOutputIDs[i].Bytes())
+		if _, ok := res.(*bc.Output); ok {
+			err := snapshot.Tree.Insert(tx.ResultID(uint32(i)).Bytes())
 			if err != nil {
 				return err
 			}

@@ -11,12 +11,51 @@ type BlockHeaderEntry struct {
 		NextConsensusProgram []byte
 		ExtHash              Hash
 	}
+	witness struct {
+		Arguments [][]byte
+	}
 }
 
 func (BlockHeaderEntry) Type() string          { return "blockheader" }
 func (bh *BlockHeaderEntry) Body() interface{} { return bh.body }
 
 func (BlockHeaderEntry) Ordinal() int { return -1 }
+
+func (bh *BlockHeaderEntry) Version() uint64 {
+	return bh.body.Version
+}
+
+func (bh *BlockHeaderEntry) Height() uint64 {
+	return bh.body.Height
+}
+
+func (bh *BlockHeaderEntry) PreviousBlockID() Hash {
+	return bh.body.PreviousBlockID
+}
+
+func (bh *BlockHeaderEntry) TimestampMS() uint64 {
+	return bh.body.TimestampMS
+}
+
+func (bh *BlockHeaderEntry) TransactionsRoot() Hash {
+	return bh.body.TransactionsRoot
+}
+
+func (bh *BlockHeaderEntry) AssetsRoot() Hash {
+	return bh.body.AssetsRoot
+}
+
+func (bh *BlockHeaderEntry) NextConsensusProgram() []byte {
+	return bh.body.NextConsensusProgram
+}
+
+func (bh *BlockHeaderEntry) Arguments() [][]byte {
+	return bh.witness.Arguments
+}
+
+func (bh *BlockHeaderEntry) SetArguments(args [][]byte) {
+	bh.witness.Arguments = args
+}
 
 func NewBlockHeader(version, height uint64, previousBlockID Hash, timestampMS uint64, transactionsRoot, assetsRoot Hash, nextConsensusProgram []byte) *BlockHeaderEntry {
 	bh := new(BlockHeaderEntry)

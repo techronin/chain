@@ -9,14 +9,9 @@ import (
 
 type TxEntries struct {
 	*TxHeader
-	ID          Hash
-	TxInputs    []Entry // 1:1 correspondence with TxData.Inputs
-	TxInputIDs  []Hash  // 1:1 correspondence with TxData.Inputs
-	TxOutputIDs []Hash  // 1:1 correspondence with TxData.Outputs. Retirement outputs have zero hashes.
-}
-
-func (tx *TxEntries) InputID(n uint32) Hash {
-	return tx.TxInputIDs[n]
+	ID         Hash
+	TxInputs   []Entry // 1:1 correspondence with TxData.Inputs
+	TxInputIDs []Hash  // 1:1 correspondence with TxData.Inputs
 }
 
 func (tx *TxEntries) SigHash(n uint32) (hash Hash) {

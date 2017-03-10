@@ -302,7 +302,7 @@ func opNextProgram(vm *virtualMachine) error {
 	if err != nil {
 		return err
 	}
-	return vm.push(vm.block.ConsensusProgram, true)
+	return vm.push(vm.block.NextConsensusProgram(), true)
 }
 
 func opBlockTime(vm *virtualMachine) error {
@@ -313,8 +313,8 @@ func opBlockTime(vm *virtualMachine) error {
 	if err != nil {
 		return err
 	}
-	if vm.block.TimestampMS > math.MaxInt64 {
+	if vm.block.TimestampMS() > math.MaxInt64 {
 		return fmt.Errorf("block timestamp out of range")
 	}
-	return vm.pushInt64(int64(vm.block.TimestampMS), true)
+	return vm.pushInt64(int64(vm.block.TimestampMS()), true)
 }
