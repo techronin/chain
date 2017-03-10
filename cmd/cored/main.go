@@ -60,6 +60,7 @@ const (
 
 var (
 	// config vars
+	clientAuth    = env.Bool("CLIENT_AUTH", false)
 	tlsCrt        = env.String("TLSCRT", "")
 	tlsKey        = env.String("TLSKEY", "")
 	rootCAs       = env.String("ROOT_CA_CERTS", "") // file path
@@ -225,9 +226,13 @@ func runServer() {
 		}
 
 		server.TLSConfig = &tls.Config{
-			ClientAuth:   tls.RequireAndVerifyClientCert,
-			ClientCAs:    loadRootCAs(*rootCAs),
 			Certificates: []tls.Certificate{cert},
+		}
+		if *clientAuth {
+			server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+			if *rootCAs != "" {
+				server.TLSConfig.ClientCAs = loadRootCAs(*rootCAs)
+			}
 		}
 		err = server.ListenAndServeTLS("", "") // uses TLS certs from above
 		if err != nil {
