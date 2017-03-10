@@ -51,9 +51,10 @@ func (s *Spend) Arguments() [][]byte {
 	return s.witness.Arguments
 }
 
-func (s *Spend) SetDestination(id Hash, pos uint64, e Entry) {
+func (s *Spend) SetDestination(id Hash, value AssetAmount, pos uint64, e Entry) {
 	s.witness.Destination = ValueDestination{
 		Ref:      id,
+		Value:    value,
 		Position: pos,
 		Entry:    e,
 	}

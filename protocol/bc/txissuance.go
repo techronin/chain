@@ -59,9 +59,10 @@ func (iss *Issuance) Arguments() [][]byte {
 	return iss.witness.Arguments
 }
 
-func (iss *Issuance) SetDestination(id Hash, pos uint64, e Entry) {
+func (iss *Issuance) SetDestination(id Hash, value AssetAmount, pos uint64, e Entry) {
 	iss.witness.Destination = ValueDestination{
 		Ref:      id,
+		Value:    value,
 		Position: pos,
 		Entry:    e,
 	}
